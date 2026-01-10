@@ -93,86 +93,110 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func drawBatteryIcon(percentage: Int, isCharging: Bool) -> NSImage {
-        // Total available height is roughly 22pt, width can be variable
+        // Attempt to fit in 22-24pt height.
+        // Layout:
+        // Top: Day (e.g. "sam") ~ 7pt height
+        // Mid: Battery ~ 8pt height
+        // Bot: Date (e.g. "10 ja") ~ 7pt height
+        
         let totalHeight: CGFloat = 22
         
-        // Date String: e.g. "sam. 10"
+        // --- Prepare Data ---
         let date = Date()
+        let calendar = Calendar.current
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "fr_FR")
-        formatter.dateFormat = "E d" // Short day + day number (e.g., "sam. 10")
-        let dateString = formatter.string(from: date).lowercased()
         
-        let font = NSFont.systemFont(ofSize: 9, weight: .medium)
-        let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.labelColor]
-        let dateStr = NSAttributedString(string: dateString, attributes: attrs)
-        let dateSize = dateStr.size()
+        // Day Name: "sam."
+        formatter.dateFormat = "EE"
+        let dayName = formatter.string(from: date).lowercased()
         
-        // Calculate needed width: max of date text or battery width
-        let batteryWidth: CGFloat = 26
-        let width = max(dateSize.width, batteryWidth) + 4 // Add some padding
+        // Day Number: "10"
+        let dayNum = calendar.component(.day, from: date)
         
-        // Height 22 to fit in status bar usually
+        // Month: "janvier" -> "ja"
+        formatter.dateFormat = "MMMM"
+        let monthFull = formatter.string(from: date).lowercased()
+        let monthShort = String(monthFull.prefix(2))
+        
+        let dateBottomString = "\(dayNum) \(monthShort)"
+        
+        // Fonts
+        let textFont = NSFont.systemFont(ofSize: 7, weight: .bold)
+        let textAttrs: [NSAttributedString.Key: Any] = [.font: textFont, .foregroundColor: NSColor.labelColor]
+        
+        let topStr = NSAttributedString(string: dayName, attributes: textAttrs)
+        let botStr = NSAttributedString(string: dateBottomString, attributes: textAttrs)
+        
+        let topSize = topStr.size()
+        let botSize = botStr.size()
+        
+        // Battery Dimensions
+        let batH: CGFloat = 8
+        let batW: CGFloat = 22 // Narrower battery
+        
+        // Calculate max width
+        let contentWidth = max(max(topSize.width, botSize.width), batW)
+        let width = contentWidth + 2 // Tight padding
+        
         let size = NSSize(width: width, height: totalHeight)
         
+        // Create Image
         let img = NSImage(size: size, flipped: false) { rect in
             let _ = NSGraphicsContext.current!.cgContext
             
             let strokeColor = NSColor.labelColor
             strokeColor.setStroke()
-            strokeColor.setFill() // For text
+            strokeColor.setFill() 
             
-            // --- Draw Date (Top) ---
-            // Y coordinates: (0,0) is bottom-left in default Cocoa (non-flipped).
-            // We want Date at Top (~11-22), Battery at Bottom (~0-11).
+            // Layout Y (0 is bottom)
+            // Bot Text: 0..6
+            // Battery: 7..15
+            // Top Text: 15..21
             
-            // Draw text at top
-            let textY: CGFloat = 11
-            dateStr.draw(at: NSPoint(x: (width - dateSize.width) / 2, y: textY))
+            // --- Draw Bottom Text (Date) ---
+            let botY: CGFloat = 0.5
+            let botX = (width - botSize.width) / 2
+            botStr.draw(at: NSPoint(x: botX, y: botY))
             
-            // --- Draw Battery (Bottom) ---
-            let batHeight: CGFloat = 10
-            let batY: CGFloat = 1 // 1pt padding from bottom
-            let batWidth: CGFloat = 24
-            // Center battery horizontally
-            let batX: CGFloat = (width - batWidth) / 2
+            // --- Draw Top Text (Day) ---
+            let topY: CGFloat = 15.5
+            let topX = (width - topSize.width) / 2
+            topStr.draw(at: NSPoint(x: topX, y: topY))
             
-            // Battery Body
-            let bodyRect = NSRect(x: batX, y: batY, width: batWidth - 2, height: batHeight)
-            let path = NSBezierPath(roundedRect: bodyRect, xRadius: 2, yRadius: 2)
+            // --- Draw Battery (Middle) ---
+            let batY: CGFloat = 7.5
+            let batX = (width - batW) / 2
+            
+            // Body
+            let bodyRect = NSRect(x: batX, y: batY, width: batW - 2, height: batH)
+            let path = NSBezierPath(roundedRect: bodyRect, xRadius: 1.5, yRadius: 1.5)
             path.lineWidth = 1.0
             path.stroke()
             
-            // Battery Nub
-            let nubRect = NSRect(x: batX + batWidth - 2, y: batY + batHeight/2 - 2, width: 2, height: 4)
-            let nubPath = NSBezierPath(roundedRect: nubRect, xRadius: 1, yRadius: 1)
-            nubPath.fill() // Fill the nub
+            // Nub
+            let nubRect = NSRect(x: batX + batW - 2, y: batY + batH/2 - 1.5, width: 2, height: 3)
+            let nubPath = NSBezierPath(roundedRect: nubRect, xRadius: 0.5, yRadius: 0.5)
+            nubPath.fill()
             
-            // Fill Level / Text inside Battery
-            let pctFont = NSFont.systemFont(ofSize: 8, weight: .bold)
-            let pctAttrs: [NSAttributedString.Key: Any] = [
-                .font: pctFont,
-                .foregroundColor: NSColor.labelColor
-            ]
-            
-            let pctText = "\(percentage)"
-            let pctStr = NSAttributedString(string: pctText, attributes: pctAttrs)
+            // Percentage (Inside Battery)
+            let pctFont = NSFont.systemFont(ofSize: 6, weight: .bold) // Tiny font
+            let pctAttrs: [NSAttributedString.Key: Any] = [.font: pctFont, .foregroundColor: NSColor.labelColor]
+            let pctStr = NSAttributedString(string: "\(percentage)", attributes: pctAttrs)
             let pctSize = pctStr.size()
             
-            // Center text inside battery body
             let pctRect = NSRect(
                 x: bodyRect.origin.x + (bodyRect.width - pctSize.width) / 2,
                 y: bodyRect.origin.y + (bodyRect.height - pctSize.height) / 2 + 0.5,
                 width: pctSize.width,
                 height: pctSize.height
             )
-            
             pctStr.draw(in: pctRect)
             
             return true
         }
         
-        img.isTemplate = true // Allows it to adapt to dark/light mode automatically
+        img.isTemplate = true
         return img
     }
 }
