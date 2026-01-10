@@ -1,1 +1,5 @@
 BatteryIconApp
+BatteryIconApp.app
+.DS_Store
+dist/
+*.iconset
