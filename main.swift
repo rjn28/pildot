@@ -141,30 +141,39 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let size = NSSize(width: width, height: totalHeight)
         
+        // Determine Color
+        let batteryColor: NSColor
+        if percentage > 60 {
+            batteryColor = NSColor.systemGreen
+        } else if percentage > 30 {
+            batteryColor = NSColor.systemOrange
+        } else {
+            batteryColor = NSColor.systemRed
+        }
+        
         // Create Image
         let img = NSImage(size: size, flipped: false) { rect in
             let _ = NSGraphicsContext.current!.cgContext
-            
-            let strokeColor = NSColor.labelColor
-            strokeColor.setStroke()
-            strokeColor.setFill() 
             
             // Layout Y (0 is bottom)
             // Bot Text: 0..6
             // Battery: 7..15
             // Top Text: 15..21
             
-            // --- Draw Bottom Text (Date) ---
+            // --- Draw Bottom Text (Date) - Keep labelColor ---
             let botY: CGFloat = 0.5
             let botX = (width - botSize.width) / 2
             botStr.draw(at: NSPoint(x: botX, y: botY))
             
-            // --- Draw Top Text (Day) ---
+            // --- Draw Top Text (Day) - Keep labelColor ---
             let topY: CGFloat = 15.5
             let topX = (width - topSize.width) / 2
             topStr.draw(at: NSPoint(x: topX, y: topY))
             
-            // --- Draw Battery (Middle) ---
+            // --- Draw Battery (Middle) - Use Colored ---
+            batteryColor.setStroke()
+            batteryColor.setFill()
+            
             let batY: CGFloat = 7.5
             let batX = (width - batW) / 2
             
@@ -181,7 +190,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             // Percentage (Inside Battery)
             let pctFont = NSFont.systemFont(ofSize: 6, weight: .bold) // Tiny font
-            let pctAttrs: [NSAttributedString.Key: Any] = [.font: pctFont, .foregroundColor: NSColor.labelColor]
+            let pctAttrs: [NSAttributedString.Key: Any] = [.font: pctFont, .foregroundColor: batteryColor]
             let pctStr = NSAttributedString(string: "\(percentage)", attributes: pctAttrs)
             let pctSize = pctStr.size()
             
@@ -196,7 +205,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return true
         }
         
-        img.isTemplate = true
+        img.isTemplate = false // Important: FALSE so colors are rendered directly
         return img
     }
 }
