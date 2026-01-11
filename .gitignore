@@ -3,3 +3,5 @@ BatteryIconApp.app
 .DS_Store
 dist/
 *.iconset
+# Antigravity Export Extension
+.agent/workflows/update-log.md
