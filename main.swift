@@ -113,9 +113,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func drawBatteryIcon(percentage: Int, isCharging: Bool, flash: Bool) -> NSImage {
-        // Creative "Minimal Stack" Design
+        // Ultra-minimal Design
         // Line 1: Day + Day Number (e.g., "dim 11")
-        // Line 2: Large percentage with charging indicator
+        // Line 2: Colored dot indicator
         
         let totalHeight: CGFloat = 22
         
@@ -136,9 +136,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let dateLine = "\(dayName) \(dayNum)"
         
         // Smooth gradient color from green (100%) to red (0%)
-        // Using HSB: Green = 120°, Red = 0°
-        // Interpolate hue based on percentage
-        let hue = CGFloat(percentage) / 100.0 * 0.33  // 0.33 = green, 0.0 = red in HSB
+        let hue = CGFloat(percentage) / 100.0 * 0.33
         let batteryColor = NSColor(hue: hue, saturation: 0.85, brightness: 0.95, alpha: 1.0)
         
         // Flash effect for low battery
@@ -149,11 +147,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             displayColor = batteryColor
         }
         
-        // Fonts - Use rounded design for modern feel
+        // Font for date
         let dateFont = NSFont.systemFont(ofSize: 8, weight: .medium)
-        let pctFont = NSFont.systemFont(ofSize: 11, weight: .bold)
         
-        // Date line attributes (subtle, secondary)
+        // Date line attributes
         let dateAttrs: [NSAttributedString.Key: Any] = [
             .font: dateFont,
             .foregroundColor: NSColor.secondaryLabelColor
@@ -161,34 +158,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let dateStr = NSAttributedString(string: dateLine, attributes: dateAttrs)
         let dateSize = dateStr.size()
         
-        // Percentage text (simple, no charging indicator)
-        let pctText = "\(percentage)%"
+        // Dot size
+        let dotSize: CGFloat = 8
         
-        let pctAttrs: [NSAttributedString.Key: Any] = [
-            .font: pctFont,
-            .foregroundColor: displayColor
-        ]
-        let pctStr = NSAttributedString(string: pctText, attributes: pctAttrs)
-        let pctSize = pctStr.size()
-        
-        // Calculate width
-        let contentWidth = max(dateSize.width, pctSize.width)
-        let width = contentWidth + 4
+        // Calculate width based on date text
+        let width = dateSize.width + 4
         
         let size = NSSize(width: width, height: totalHeight)
         
         let img = NSImage(size: size, flipped: false) { rect in
             let _ = NSGraphicsContext.current!.cgContext
             
-            // --- Top: Date line (subtle) ---
+            // --- Top: Date line ---
             let dateY: CGFloat = 13
             let dateX = (width - dateSize.width) / 2
             dateStr.draw(at: NSPoint(x: dateX, y: dateY))
             
-            // --- Bottom: Percentage (prominent) ---
-            let pctY: CGFloat = 1
-            let pctX = (width - pctSize.width) / 2
-            pctStr.draw(at: NSPoint(x: pctX, y: pctY))
+            // --- Bottom: Colored dot ---
+            let dotX = (width - dotSize) / 2
+            let dotY: CGFloat = 2
+            
+            let dotRect = NSRect(x: dotX, y: dotY, width: dotSize, height: dotSize)
+            let dotPath = NSBezierPath(ovalIn: dotRect)
+            displayColor.setFill()
+            dotPath.fill()
             
             return true
         }
