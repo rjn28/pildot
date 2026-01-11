@@ -80,15 +80,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         lastPercentage = info.percentage
         lastIsCharging = info.isCharging
         
-        // Manage blink timer
-        if info.percentage <= 15 && !info.isCharging {
+        // Manage blink timer for low battery (<=15% and not charging)
+        let shouldBlink = info.percentage <= 15 && !info.isCharging
+        
+        if shouldBlink {
+            // Start blink timer if not already running
             if blinkTimer == nil {
-                blinkTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+                blinkState = true
+                blinkTimer = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in
+                    guard let self = self else { return }
                     self.blinkState.toggle()
                     self.redrawIcon()
                 }
+                RunLoop.main.add(blinkTimer!, forMode: .common)
             }
         } else {
+            // Stop blink timer
             blinkTimer?.invalidate()
             blinkTimer = nil
             blinkState = true
