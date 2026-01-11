@@ -21,10 +21,6 @@ func getBatteryInfo() -> BatteryInfo? {
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     guard let output = String(data: data, encoding: .utf8) else { return nil }
     
-    // Example: ... 56%; discharging; ... or ... 100%; charged; ...
-    // Regex to capture digits before %
-    // We look for line containing "InternalBattery" or just the % pattern
-    
     let range = NSRange(location: 0, length: output.utf16.count)
     let regex = try! NSRegularExpression(pattern: "(\\d+)%")
     
@@ -32,11 +28,7 @@ func getBatteryInfo() -> BatteryInfo? {
         if let swiftRange = Range(match.range(at: 1), in: output) {
             let percentPart = output[swiftRange]
             let percentCheck = Int(percentPart) ?? 0
-            
-            // Basic check for charging based on words like 'charging', 'AC attached' usually in pmset output
-            // 'AC Power' in first line means plugged in usually, but let's check text
             let isCharging = output.contains("charging") || output.contains("AC attached") || output.contains("charged")
-            
             return BatteryInfo(percentage: percentCheck, isCharging: isCharging)
         }
     }
@@ -47,10 +39,13 @@ func getBatteryInfo() -> BatteryInfo? {
 // MARK: - Status Bar Controller
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
-    var timer: Timer?
+    var updateTimer: Timer?
+    var blinkTimer: Timer?
+    var blinkState: Bool = true // true = visible, false = hidden
+    var lastPercentage: Int = 100
+    var lastIsCharging: Bool = false
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Hide dock icon
         NSApp.setActivationPolicy(.accessory)
         
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -62,67 +57,78 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             updateStatus()
         }
         
-        // Update every 5 seconds
-        timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
+        // Update battery info every 10 seconds
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { _ in
             self.updateStatus()
         }
     }
     
     @objc func menuClicked() {
-        // Simple quit on click for now, or maybe a menu
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit BatteryIconApp", action: #selector(quitApp), keyEquivalent: "q"))
         statusItem.menu = menu
-        statusItem.button?.performClick(nil) // Trigger menu opening
-        statusItem.menu = nil // Clear it so simple verification doesn't get stuck? 
-        // Actually standard behavior is to attach menu to statusItem.menu, but let's just do that.
+        statusItem.button?.performClick(nil)
+        statusItem.menu = nil
     }
     
     @objc func quitApp() {
         NSApp.terminate(nil)
     }
-
+    
     func updateStatus() {
         guard let info = getBatteryInfo() else { return }
-        let image = drawBatteryIcon(percentage: info.percentage, isCharging: info.isCharging)
+        lastPercentage = info.percentage
+        lastIsCharging = info.isCharging
+        
+        // Manage blink timer
+        if info.percentage <= 15 && !info.isCharging {
+            if blinkTimer == nil {
+                blinkTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+                    self.blinkState.toggle()
+                    self.redrawIcon()
+                }
+            }
+        } else {
+            blinkTimer?.invalidate()
+            blinkTimer = nil
+            blinkState = true
+        }
+        
+        redrawIcon()
+    }
+    
+    func redrawIcon() {
+        let image = drawBatteryIcon(percentage: lastPercentage, isCharging: lastIsCharging, visible: blinkState)
         DispatchQueue.main.async {
             self.statusItem.button?.image = image
-            // We don't set title to save space as requested
             self.statusItem.button?.imagePosition = .imageOnly
         }
     }
     
-    func drawBatteryIcon(percentage: Int, isCharging: Bool) -> NSImage {
-        // Attempt to fit in 22-24pt height.
-        // Layout:
-        // Top: Day (e.g. "sam") ~ 7pt height
-        // Mid: Battery ~ 8pt height
-        // Bot: Date (e.g. "10 ja") ~ 7pt height
+    func drawBatteryIcon(percentage: Int, isCharging: Bool, visible: Bool) -> NSImage {
+        // Dimensions
+        let totalHeight: CGFloat = 24
+        let batH: CGFloat = 10
+        let batW: CGFloat = 24
         
-        let totalHeight: CGFloat = 22
-        
-        // --- Prepare Data ---
+        // Date info
         let date = Date()
         let calendar = Calendar.current
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "fr_FR")
         
-        // Day Name: "sam."
         formatter.dateFormat = "EE"
-        let dayName = formatter.string(from: date).lowercased()
+        let dayName = formatter.string(from: date).replacingOccurrences(of: ".", with: "").lowercased()
         
-        // Day Number: "10"
         let dayNum = calendar.component(.day, from: date)
         
-        // Month: "janvier" -> "ja"
-        formatter.dateFormat = "MMMM"
-        let monthFull = formatter.string(from: date).lowercased()
-        let monthShort = String(monthFull.prefix(2))
+        formatter.dateFormat = "MMM"
+        let monthShort = formatter.string(from: date).replacingOccurrences(of: ".", with: "").prefix(2).lowercased()
         
         let dateBottomString = "\(dayNum) \(monthShort)"
         
         // Fonts
-        let textFont = NSFont.systemFont(ofSize: 7, weight: .bold)
+        let textFont = NSFont.monospacedSystemFont(ofSize: 8, weight: .semibold)
         let textAttrs: [NSAttributedString.Key: Any] = [.font: textFont, .foregroundColor: NSColor.labelColor]
         
         let topStr = NSAttributedString(string: dayName, attributes: textAttrs)
@@ -131,17 +137,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let topSize = topStr.size()
         let botSize = botStr.size()
         
-        // Battery Dimensions
-        let batH: CGFloat = 8
-        let batW: CGFloat = 22 // Narrower battery
-        
-        // Calculate max width
-        let contentWidth = max(max(topSize.width, botSize.width), batW)
-        let width = contentWidth + 2 // Tight padding
+        let contentWidth = max(max(topSize.width, botSize.width), batW) + 4
+        let width = contentWidth
         
         let size = NSSize(width: width, height: totalHeight)
         
-        // Determine Color
+        // Color based on percentage
         let batteryColor: NSColor
         if percentage > 60 {
             batteryColor = NSColor.systemGreen
@@ -151,61 +152,73 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             batteryColor = NSColor.systemRed
         }
         
-        // Create Image
         let img = NSImage(size: size, flipped: false) { rect in
             let _ = NSGraphicsContext.current!.cgContext
             
-            // Layout Y (0 is bottom)
-            // Bot Text: 0..6
-            // Battery: 7..15
-            // Top Text: 15..21
-            
-            // --- Draw Bottom Text (Date) - Keep labelColor ---
-            let botY: CGFloat = 0.5
-            let botX = (width - botSize.width) / 2
-            botStr.draw(at: NSPoint(x: botX, y: botY))
-            
-            // --- Draw Top Text (Day) - Keep labelColor ---
-            let topY: CGFloat = 15.5
+            // --- Top Text (Day) ---
+            let topY: CGFloat = 17
             let topX = (width - topSize.width) / 2
             topStr.draw(at: NSPoint(x: topX, y: topY))
             
-            // --- Draw Battery (Middle) - Use Colored ---
-            batteryColor.setStroke()
-            batteryColor.setFill()
+            // --- Bottom Text (Date) ---
+            let botY: CGFloat = 0
+            let botX = (width - botSize.width) / 2
+            botStr.draw(at: NSPoint(x: botX, y: botY))
             
-            let batY: CGFloat = 7.5
-            let batX = (width - batW) / 2
-            
-            // Body
-            let bodyRect = NSRect(x: batX, y: batY, width: batW - 2, height: batH)
-            let path = NSBezierPath(roundedRect: bodyRect, xRadius: 1.5, yRadius: 1.5)
-            path.lineWidth = 1.0
-            path.stroke()
-            
-            // Nub
-            let nubRect = NSRect(x: batX + batW - 2, y: batY + batH/2 - 1.5, width: 2, height: 3)
-            let nubPath = NSBezierPath(roundedRect: nubRect, xRadius: 0.5, yRadius: 0.5)
-            nubPath.fill()
-            
-            // Percentage (Inside Battery)
-            let pctFont = NSFont.systemFont(ofSize: 6, weight: .bold) // Tiny font
-            let pctAttrs: [NSAttributedString.Key: Any] = [.font: pctFont, .foregroundColor: batteryColor]
-            let pctStr = NSAttributedString(string: "\(percentage)", attributes: pctAttrs)
-            let pctSize = pctStr.size()
-            
-            let pctRect = NSRect(
-                x: bodyRect.origin.x + (bodyRect.width - pctSize.width) / 2,
-                y: bodyRect.origin.y + (bodyRect.height - pctSize.height) / 2 + 0.5,
-                width: pctSize.width,
-                height: pctSize.height
-            )
-            pctStr.draw(in: pctRect)
+            // --- Battery (Middle) ---
+            // Only draw if visible (for blink effect)
+            if visible {
+                let batY: CGFloat = 8
+                let batX = (width - batW) / 2
+                
+                // Outer body (stroke only)
+                let bodyRect = NSRect(x: batX + 0.5, y: batY + 0.5, width: batW - 3, height: batH - 1)
+                let bodyPath = NSBezierPath(roundedRect: bodyRect, xRadius: 2, yRadius: 2)
+                bodyPath.lineWidth = 1.2
+                batteryColor.setStroke()
+                bodyPath.stroke()
+                
+                // Nub (terminal)
+                let nubRect = NSRect(x: batX + batW - 2.5, y: batY + batH/2 - 2, width: 2.5, height: 4)
+                let nubPath = NSBezierPath(roundedRect: nubRect, xRadius: 1, yRadius: 1)
+                batteryColor.setFill()
+                nubPath.fill()
+                
+                // Fill level inside battery
+                let fillPadding: CGFloat = 2
+                let maxFillWidth = bodyRect.width - (fillPadding * 2)
+                let fillWidth = maxFillWidth * CGFloat(percentage) / 100.0
+                
+                if fillWidth > 0 {
+                    let fillRect = NSRect(
+                        x: bodyRect.origin.x + fillPadding,
+                        y: bodyRect.origin.y + fillPadding,
+                        width: fillWidth,
+                        height: bodyRect.height - (fillPadding * 2)
+                    )
+                    let fillPath = NSBezierPath(roundedRect: fillRect, xRadius: 1, yRadius: 1)
+                    batteryColor.withAlphaComponent(0.35).setFill()
+                    fillPath.fill()
+                }
+                
+                // Percentage text (white with slight shadow for readability)
+                let pctFont = NSFont.monospacedSystemFont(ofSize: 7, weight: .bold)
+                let pctAttrs: [NSAttributedString.Key: Any] = [
+                    .font: pctFont,
+                    .foregroundColor: batteryColor
+                ]
+                let pctStr = NSAttributedString(string: "\(percentage)", attributes: pctAttrs)
+                let pctSize = pctStr.size()
+                
+                let pctX = bodyRect.origin.x + (bodyRect.width - pctSize.width) / 2
+                let pctY = bodyRect.origin.y + (bodyRect.height - pctSize.height) / 2 + 0.5
+                pctStr.draw(at: NSPoint(x: pctX, y: pctY))
+            }
             
             return true
         }
         
-        img.isTemplate = false // Important: FALSE so colors are rendered directly
+        img.isTemplate = false
         return img
     }
 }
