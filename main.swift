@@ -113,10 +113,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func drawBatteryIcon(percentage: Int, isCharging: Bool, flash: Bool) -> NSImage {
-        // Layout: Horizontal arrangement
-        // Left side: Vertical battery (tall, thin)
-        // Right side: Percentage text
+        // Simple text-only layout:
         // Top: Day name
+        // Middle: Percentage (colored)
         // Bottom: Date
         
         let totalHeight: CGFloat = 22
@@ -147,13 +146,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let topSize = topStr.size()
         let botSize = botStr.size()
         
-        // Vertical battery dimensions (thin and tall)
-        let batW: CGFloat = 8  // Width of vertical battery
-        let batH: CGFloat = 12 // Height of vertical battery (fits between text rows)
-        
-        // Percentage text
-        let pctFont = NSFont.monospacedSystemFont(ofSize: 8, weight: .bold)
-        
         // Color based on percentage
         var batteryColor: NSColor
         if percentage > 60 {
@@ -172,13 +164,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             displayColor = batteryColor
         }
         
+        // Percentage text
+        let pctFont = NSFont.monospacedSystemFont(ofSize: 9, weight: .bold)
         let pctAttrs: [NSAttributedString.Key: Any] = [.font: pctFont, .foregroundColor: displayColor]
-        let pctStr = NSAttributedString(string: "\(percentage)", attributes: pctAttrs)
+        let pctStr = NSAttributedString(string: "\(percentage)%", attributes: pctAttrs)
         let pctSize = pctStr.size()
         
-        // Calculate total width: battery + gap + percentage
-        let batteryPlusPct = batW + 2 + pctSize.width
-        let contentWidth = max(max(topSize.width, botSize.width), batteryPlusPct)
+        // Calculate width based on widest element
+        let contentWidth = max(max(topSize.width, botSize.width), pctSize.width)
         let width = contentWidth + 2
         
         let size = NSSize(width: width, height: totalHeight)
@@ -191,55 +184,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let topX = (width - topSize.width) / 2
             topStr.draw(at: NSPoint(x: topX, y: topY))
             
+            // --- Middle Text (Percentage) ---
+            let pctY: CGFloat = 7.5
+            let pctX = (width - pctSize.width) / 2
+            pctStr.draw(at: NSPoint(x: pctX, y: pctY))
+            
             // --- Bottom Text (Date) ---
             let botY: CGFloat = 0
             let botX = (width - botSize.width) / 2
             botStr.draw(at: NSPoint(x: botX, y: botY))
-            
-            // --- Vertical Battery + Percentage (Middle row) ---
-            // Center the battery+pct group horizontally
-            let groupWidth = batW + 2 + pctSize.width
-            let groupX = (width - groupWidth) / 2
-            
-            let batX = groupX
-            let batY: CGFloat = 7  // Middle zone
-            
-            // Nub on top (small rectangle)
-            let nubW: CGFloat = 4
-            let nubH: CGFloat = 2
-            let nubRect = NSRect(x: batX + (batW - nubW) / 2, y: batY + batH - 0.5, width: nubW, height: nubH)
-            let nubPath = NSBezierPath(roundedRect: nubRect, xRadius: 0.5, yRadius: 0.5)
-            displayColor.setFill()
-            nubPath.fill()
-            
-            // Battery body (stroke)
-            let bodyRect = NSRect(x: batX + 0.5, y: batY + 0.5, width: batW - 1, height: batH - 2)
-            let bodyPath = NSBezierPath(roundedRect: bodyRect, xRadius: 1.5, yRadius: 1.5)
-            bodyPath.lineWidth = 1.2
-            displayColor.setStroke()
-            bodyPath.stroke()
-            
-            // Fill level (from bottom up)
-            let fillPadding: CGFloat = 1.5
-            let maxFillHeight = bodyRect.height - (fillPadding * 2)
-            let fillHeight = maxFillHeight * CGFloat(percentage) / 100.0
-            
-            if fillHeight > 0 {
-                let fillRect = NSRect(
-                    x: bodyRect.origin.x + fillPadding,
-                    y: bodyRect.origin.y + fillPadding,
-                    width: bodyRect.width - (fillPadding * 2),
-                    height: fillHeight
-                )
-                let fillPath = NSBezierPath(roundedRect: fillRect, xRadius: 0.5, yRadius: 0.5)
-                displayColor.withAlphaComponent(0.5).setFill()
-                fillPath.fill()
-            }
-            
-            // Percentage text to the right of battery
-            let pctX = batX + batW + 2
-            let pctY = batY + (batH - pctSize.height) / 2
-            pctStr.draw(at: NSPoint(x: pctX, y: pctY))
             
             return true
         }
