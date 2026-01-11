@@ -113,10 +113,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func drawBatteryIcon(percentage: Int, isCharging: Bool, flash: Bool) -> NSImage {
-        // Dimensions
-        let totalHeight: CGFloat = 24
-        let batH: CGFloat = 10
-        let batW: CGFloat = 24
+        // Layout: Horizontal arrangement
+        // Left side: Vertical battery (tall, thin)
+        // Right side: Percentage text
+        // Top: Day name
+        // Bottom: Date
+        
+        let totalHeight: CGFloat = 22
         
         // Date info
         let date = Date()
@@ -135,7 +138,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let dateBottomString = "\(dayNum) \(monthShort)"
         
         // Fonts
-        let textFont = NSFont.monospacedSystemFont(ofSize: 8, weight: .semibold)
+        let textFont = NSFont.monospacedSystemFont(ofSize: 7, weight: .semibold)
         let textAttrs: [NSAttributedString.Key: Any] = [.font: textFont, .foregroundColor: NSColor.labelColor]
         
         let topStr = NSAttributedString(string: dayName, attributes: textAttrs)
@@ -144,10 +147,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let topSize = topStr.size()
         let botSize = botStr.size()
         
-        let contentWidth = max(max(topSize.width, botSize.width), batW) + 4
-        let width = contentWidth
+        // Vertical battery dimensions (thin and tall)
+        let batW: CGFloat = 8  // Width of vertical battery
+        let batH: CGFloat = 12 // Height of vertical battery (fits between text rows)
         
-        let size = NSSize(width: width, height: totalHeight)
+        // Percentage text
+        let pctFont = NSFont.monospacedSystemFont(ofSize: 8, weight: .bold)
         
         // Color based on percentage
         var batteryColor: NSColor
@@ -159,19 +164,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             batteryColor = NSColor.systemRed
         }
         
-        // Flash effect: alternate between normal color and very dim
+        // Flash effect
         let displayColor: NSColor
         if flash {
-            displayColor = batteryColor.withAlphaComponent(0.2)  // Dim during flash
+            displayColor = batteryColor.withAlphaComponent(0.2)
         } else {
             displayColor = batteryColor
         }
+        
+        let pctAttrs: [NSAttributedString.Key: Any] = [.font: pctFont, .foregroundColor: displayColor]
+        let pctStr = NSAttributedString(string: "\(percentage)", attributes: pctAttrs)
+        let pctSize = pctStr.size()
+        
+        // Calculate total width: battery + gap + percentage
+        let batteryPlusPct = batW + 2 + pctSize.width
+        let contentWidth = max(max(topSize.width, botSize.width), batteryPlusPct)
+        let width = contentWidth + 2
+        
+        let size = NSSize(width: width, height: totalHeight)
         
         let img = NSImage(size: size, flipped: false) { rect in
             let _ = NSGraphicsContext.current!.cgContext
             
             // --- Top Text (Day) ---
-            let topY: CGFloat = 17
+            let topY: CGFloat = 15
             let topX = (width - topSize.width) / 2
             topStr.draw(at: NSPoint(x: topX, y: topY))
             
@@ -180,51 +196,49 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let botX = (width - botSize.width) / 2
             botStr.draw(at: NSPoint(x: botX, y: botY))
             
-            // --- Battery (Middle) ---
-            let batY: CGFloat = 8
-            let batX = (width - batW) / 2
+            // --- Vertical Battery + Percentage (Middle row) ---
+            // Center the battery+pct group horizontally
+            let groupWidth = batW + 2 + pctSize.width
+            let groupX = (width - groupWidth) / 2
             
-            // Outer body (stroke only)
-            let bodyRect = NSRect(x: batX + 0.5, y: batY + 0.5, width: batW - 3, height: batH - 1)
-            let bodyPath = NSBezierPath(roundedRect: bodyRect, xRadius: 2, yRadius: 2)
+            let batX = groupX
+            let batY: CGFloat = 7  // Middle zone
+            
+            // Nub on top (small rectangle)
+            let nubW: CGFloat = 4
+            let nubH: CGFloat = 2
+            let nubRect = NSRect(x: batX + (batW - nubW) / 2, y: batY + batH - 0.5, width: nubW, height: nubH)
+            let nubPath = NSBezierPath(roundedRect: nubRect, xRadius: 0.5, yRadius: 0.5)
+            displayColor.setFill()
+            nubPath.fill()
+            
+            // Battery body (stroke)
+            let bodyRect = NSRect(x: batX + 0.5, y: batY + 0.5, width: batW - 1, height: batH - 2)
+            let bodyPath = NSBezierPath(roundedRect: bodyRect, xRadius: 1.5, yRadius: 1.5)
             bodyPath.lineWidth = 1.2
             displayColor.setStroke()
             bodyPath.stroke()
             
-            // Nub (terminal)
-            let nubRect = NSRect(x: batX + batW - 2.5, y: batY + batH/2 - 2, width: 2.5, height: 4)
-            let nubPath = NSBezierPath(roundedRect: nubRect, xRadius: 1, yRadius: 1)
-            displayColor.setFill()
-            nubPath.fill()
+            // Fill level (from bottom up)
+            let fillPadding: CGFloat = 1.5
+            let maxFillHeight = bodyRect.height - (fillPadding * 2)
+            let fillHeight = maxFillHeight * CGFloat(percentage) / 100.0
             
-            // Fill level inside battery
-            let fillPadding: CGFloat = 2
-            let maxFillWidth = bodyRect.width - (fillPadding * 2)
-            let fillWidth = maxFillWidth * CGFloat(percentage) / 100.0
-            
-            if fillWidth > 0 {
+            if fillHeight > 0 {
                 let fillRect = NSRect(
                     x: bodyRect.origin.x + fillPadding,
                     y: bodyRect.origin.y + fillPadding,
-                    width: fillWidth,
-                    height: bodyRect.height - (fillPadding * 2)
+                    width: bodyRect.width - (fillPadding * 2),
+                    height: fillHeight
                 )
-                let fillPath = NSBezierPath(roundedRect: fillRect, xRadius: 1, yRadius: 1)
-                displayColor.withAlphaComponent(0.4).setFill()
+                let fillPath = NSBezierPath(roundedRect: fillRect, xRadius: 0.5, yRadius: 0.5)
+                displayColor.withAlphaComponent(0.5).setFill()
                 fillPath.fill()
             }
             
-            // Percentage text
-            let pctFont = NSFont.monospacedSystemFont(ofSize: 7, weight: .bold)
-            let pctAttrs: [NSAttributedString.Key: Any] = [
-                .font: pctFont,
-                .foregroundColor: displayColor
-            ]
-            let pctStr = NSAttributedString(string: "\(percentage)", attributes: pctAttrs)
-            let pctSize = pctStr.size()
-            
-            let pctX = bodyRect.origin.x + (bodyRect.width - pctSize.width) / 2
-            let pctY = bodyRect.origin.y + (bodyRect.height - pctSize.height) / 2 + 0.5
+            // Percentage text to the right of battery
+            let pctX = batX + batW + 2
+            let pctY = batY + (batH - pctSize.height) / 2
             pctStr.draw(at: NSPoint(x: pctX, y: pctY))
             
             return true
