@@ -3,7 +3,7 @@ set -euo pipefail
 
 APP_NAME="BatteryIconApp"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_BUNDLE="$ROOT_DIR/dist/$APP_NAME.app"
+APP_BUNDLE="$ROOT_DIR/$APP_NAME.app"
 DMG_PATH="${BATTERY_ICON_DMG_PATH:-$ROOT_DIR/$APP_NAME.dmg}"
 DMG_STAGING="$ROOT_DIR/.build/dmg-staging"
 

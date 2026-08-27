@@ -5,7 +5,7 @@ MODE="${1:-run}"
 APP_NAME="BatteryIconApp"
 BUNDLE_ID="com.rjn28.BatteryIconApp"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_BUNDLE="$ROOT_DIR/dist/$APP_NAME.app"
+APP_BUNDLE="$ROOT_DIR/$APP_NAME.app"
 APP_BINARY="$APP_BUNDLE/Contents/MacOS/$APP_NAME"
 
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true

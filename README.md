@@ -21,7 +21,7 @@ swift test
 ./script/build_and_run.sh --verify
 ```
 
-L’application générée se trouve dans `dist/BatteryIconApp.app`.
+L’application Release générée se trouve directement à la racine : `BatteryIconApp.app`.
 
 ## Créer l’installateur
 
@@ -29,4 +29,4 @@ L’application générée se trouve dans `dist/BatteryIconApp.app`.
 ./package.sh
 ```
 
-Cette commande produit un `BatteryIconApp.dmg` prévu uniquement pour un usage local. Aucune identité de signature ni notarisation n’est utilisée ; sur Apple Silicon, seul le marqueur ad hoc ajouté automatiquement par le compilateur est conservé pour permettre à macOS de lancer le binaire.
+Cette commande produit `BatteryIconApp.app` et `BatteryIconApp.dmg` à la racine du projet, pour un usage local. Aucune identité de signature ni notarisation n’est utilisée ; sur Apple Silicon, seul le marqueur ad hoc ajouté automatiquement par le compilateur est conservé pour permettre à macOS de lancer le binaire.
