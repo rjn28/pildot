@@ -1,7 +1,11 @@
-BatteryIconApp
-BatteryIconApp.app
-.DS_Store
+.build/
+.swiftpm/
 dist/
+/BatteryIconApp
+/BatteryIconApp.app
+*.dmg
 *.iconset
+.DS_Store
+
 # Antigravity Export Extension
 .agent/workflows/update-log.md
