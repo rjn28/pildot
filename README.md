@@ -5,12 +5,15 @@ Une app macOS extrêmement légère qui affiche dans la barre des menus :
 - le jour et la date sur une ligne compacte ;
 - un point dont la couleur suit le niveau de batterie ;
 - un clignotement discret sous 15 %, uniquement lorsque le Mac est débranché.
+- un réglage natif pour lancer automatiquement l’app à l’ouverture de session.
 
 L’esthétique originale est conservée. La palette a été corrigée pour que la zone critique soit réellement rouge, puis évolue progressivement vers l’orange, le jaune et le vert.
 
 ## Légèreté
 
 L’application utilise uniquement AppKit et IOKit, sans dépendance externe. Elle lit directement l’état de la batterie toutes les 30 secondes, sans lancer de sous-processus. Le minuteur d’animation n’est actif qu’en batterie critique.
+
+Le réglage **Réglages → Lancer au démarrage** crée un LaunchAgent utilisateur dans `~/Library/LaunchAgents`. `launchctl` n’est appelé qu’au moment d’activer ou désactiver ce réglage, afin de préserver l’empreinte minimale de l’application.
 
 ## Développement
 
