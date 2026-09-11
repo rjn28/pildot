@@ -24,8 +24,8 @@ Pildot est proposé ici sous forme de sources, avec ses ressources et ses script
 Pour essayer Pildot sur votre Mac, vous pouvez le compiler à partir des sources :
 
 ```bash
-git clone https://github.com/rjn28/battery-bar-app.git
-cd battery-bar-app
+git clone https://github.com/rjn28/pildot.git
+cd pildot
 ./script/build_app_bundle.sh release
 ```
 
