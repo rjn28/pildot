@@ -2,3 +2,13 @@
 .swiftpm/
 *.iconset
 .DS_Store
+
+# Local tools and generated distribution files
+.codex/
+*.app/
+*.dmg
+.env
+.env.*
+!.env.example
+*.p12
+*.p8
