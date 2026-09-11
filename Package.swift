@@ -3,24 +3,24 @@
 import PackageDescription
 
 let package = Package(
-    name: "BatteryIconApp",
+    name: "Pildot",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "BatteryIconApp", targets: ["BatteryIconApp"])
+        .executable(name: "Pildot", targets: ["Pildot"])
     ],
     targets: [
         .executableTarget(
-            name: "BatteryIconApp",
+            name: "Pildot",
             linkerSettings: [
                 .linkedFramework("AppKit"),
                 .linkedFramework("IOKit")
             ]
         ),
         .testTarget(
-            name: "BatteryIconAppTests",
-            dependencies: ["BatteryIconApp"]
+            name: "PildotTests",
+            dependencies: ["Pildot"]
         )
     ]
 )

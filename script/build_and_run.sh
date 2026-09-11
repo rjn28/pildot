@@ -2,7 +2,7 @@
 set -euo pipefail
 
 MODE="${1:-run}"
-APP_NAME="BatteryIconApp"
+APP_NAME="Pildot"
 BUNDLE_ID="com.rjn28.BatteryIconApp"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_BUNDLE="$ROOT_DIR/$APP_NAME.app"

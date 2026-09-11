@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import BatteryIconApp
+@testable import Pildot
 
 struct StatusIconRendererTests {
     @Test

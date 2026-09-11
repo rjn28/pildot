@@ -2,7 +2,7 @@ import AppKit
 
 @main
 @MainActor
-enum BatteryIconApplication {
+enum PildotApplication {
     private static let appDelegate = AppDelegate()
 
     static func main() {

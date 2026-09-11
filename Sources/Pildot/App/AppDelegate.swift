@@ -77,7 +77,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: "Quitter BatteryIconApp",
+            title: "Quitter Pildot",
             action: #selector(quitApplication),
             keyEquivalent: "q"
         )

@@ -73,6 +73,7 @@ struct LaunchctlController: LaunchAgentControlling {
 
 @MainActor
 final class LaunchAtLoginController: LaunchAtLoginManaging {
+    // Keep the existing identifier so users can disable the pre-Pildot login item.
     static let agentLabel = "com.rjn28.BatteryIconApp.login"
 
     private let applicationURL: URL

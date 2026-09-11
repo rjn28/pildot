@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import BatteryIconApp
+@testable import Pildot
 
 @MainActor
 struct LaunchAtLoginControllerTests {
@@ -55,7 +55,7 @@ struct LaunchAtLoginControllerTests {
     private func makeFixture() throws -> Fixture {
         let rootURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let applicationURL = rootURL.appendingPathComponent("BatteryIconApp.app", isDirectory: true)
+        let applicationURL = rootURL.appendingPathComponent("Pildot.app", isDirectory: true)
         let launchAgentsURL = rootURL.appendingPathComponent("LaunchAgents", isDirectory: true)
         let agentURL = launchAgentsURL
             .appendingPathComponent("\(LaunchAtLoginController.agentLabel).plist")

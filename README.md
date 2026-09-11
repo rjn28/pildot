@@ -1,4 +1,6 @@
-# BatteryIconApp
+# Pildot
+
+**Votre batterie, en un point.**
 
 Une application macOS discrète qui affiche la date et un indicateur coloré de batterie dans la barre des menus.
 
@@ -23,11 +25,20 @@ cd battery-bar-app
 ./script/build_app_bundle.sh release
 ```
 
-Déplacer ensuite `BatteryIconApp.app` dans `/Applications`, puis l’ouvrir. Activer le lancement automatique seulement après ce déplacement : son enregistrement utilise le chemin de l’application.
+Déplacer ensuite `Pildot.app` dans `/Applications`, puis l’ouvrir. Activer le lancement automatique seulement après ce déplacement : son enregistrement utilise le chemin de l’application.
 
 L’application n’affiche pas de fenêtre principale ni d’icône dans le Dock. Cliquer sur son indicateur dans la barre des menus pour accéder aux réglages et la quitter.
 
 Les builds locaux ne sont pas signés avec une identité Developer ID ni notarisés.
+
+## Passer de BatteryIconApp à Pildot
+
+1. Dans BatteryIconApp, désactiver **Réglages → Lancer au démarrage**, puis quitter l’application.
+2. Compiler Pildot et déplacer `Pildot.app` dans `/Applications`.
+3. Ouvrir Pildot et réactiver le lancement automatique si souhaité.
+4. Supprimer l’ancienne `BatteryIconApp.app` pour éviter de lancer les deux versions.
+
+L’identifiant interne `com.rjn28.BatteryIconApp` et le nom du LaunchAgent sont conservés pour reconnaître l’enregistrement existant. La désactivation puis la réactivation mettent à jour le chemin vers `Pildot.app`.
 
 ## Développement et tests
 
@@ -47,7 +58,7 @@ GitHub Actions exécute les tests et construit le bundle Release sur macOS à ch
 ./package.sh
 ```
 
-Cette commande produit `BatteryIconApp.app` et `BatteryIconApp.dmg` à la racine, pour un usage local. Ces fichiers générés sont ignorés par Git et ne font pas partie du dépôt.
+Cette commande produit `Pildot.app` et `Pildot.dmg` à la racine, pour un usage local. Ces fichiers générés sont ignorés par Git et ne font pas partie du dépôt.
 
 ## Fonctionnement et données locales
 
@@ -58,8 +69,8 @@ Le lancement automatique crée `~/Library/LaunchAgents/com.rjn28.BatteryIconApp.
 ## Désinstallation
 
 1. Désactiver **Réglages → Lancer au démarrage** dans le menu de l’application.
-2. Quitter BatteryIconApp depuis ce même menu.
-3. Mettre `BatteryIconApp.app` à la corbeille.
+2. Quitter Pildot depuis ce même menu.
+3. Mettre `Pildot.app` à la corbeille.
 
 Si l’application a déjà été supprimée, retirer son enregistrement résiduel avec :
 

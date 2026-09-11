@@ -2,7 +2,7 @@
 set -euo pipefail
 
 CONFIGURATION="${1:-debug}"
-APP_NAME="BatteryIconApp"
+APP_NAME="Pildot"
 BUNDLE_ID="com.rjn28.BatteryIconApp"
 MIN_SYSTEM_VERSION="13.0"
 
@@ -13,7 +13,7 @@ APP_MACOS="$APP_CONTENTS/MacOS"
 APP_RESOURCES="$APP_CONTENTS/Resources"
 APP_BINARY="$APP_MACOS/$APP_NAME"
 ICON_SOURCE="$ROOT_DIR/logobatterie.png"
-ICONSET_DIR="$ROOT_DIR/.build/BatteryIconApp.iconset"
+ICONSET_DIR="$ROOT_DIR/.build/Pildot.iconset"
 
 case "$CONFIGURATION" in
   debug|release) ;;
@@ -60,7 +60,7 @@ cat >"$APP_CONTENTS/Info.plist" <<PLIST
   <key>CFBundleName</key>
   <string>$APP_NAME</string>
   <key>CFBundleDisplayName</key>
-  <string>Battery Icon</string>
+  <string>Pildot</string>
   <key>CFBundleIconFile</key>
   <string>AppIcon</string>
   <key>CFBundlePackageType</key>
