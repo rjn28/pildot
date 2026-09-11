@@ -9,7 +9,9 @@ Une application macOS discrète qui affiche la date et un indicateur coloré de 
 - Niveau de charge et état de l’alimentation accessibles depuis le menu.
 - Lancement à l’ouverture de session, activable dans **Réglages → Lancer au démarrage**.
 
-Ce dépôt distribue uniquement le code source et ses ressources : aucun fichier `.app` ou `.dmg` n’est publié.
+Je partage le code de ce petit projet personnel pour celles et ceux que sa conception intéresse, qui souhaitent l’adapter ou le compiler pour leur propre usage.
+
+Pildot est proposé ici sous forme de sources, avec ses ressources et ses scripts de compilation. Ce dépôt ne propose pas de version prête à installer ni de téléchargement `.app` ou `.dmg` : c’est un choix de partage du projet.
 
 ## Prérequis
 
@@ -17,7 +19,9 @@ Ce dépôt distribue uniquement le code source et ses ressources : aucun fichier
 - **Swift 6.0 ou plus récent**, fourni avec une version compatible de Xcode ou des Command Line Tools. Vérifier avec `swift --version`.
 - Les scripts produisent un binaire pour l’architecture du Mac qui le compile (Apple Silicon ou Intel), pas un binaire universel.
 
-## Compiler et installer
+## Compiler pour son propre usage
+
+Pour essayer Pildot sur votre Mac, vous pouvez le compiler à partir des sources :
 
 ```bash
 git clone https://github.com/rjn28/battery-bar-app.git
@@ -28,8 +32,6 @@ cd battery-bar-app
 Déplacer ensuite `Pildot.app` dans `/Applications`, puis l’ouvrir. Activer le lancement automatique seulement après ce déplacement : son enregistrement utilise le chemin de l’application.
 
 L’application n’affiche pas de fenêtre principale ni d’icône dans le Dock. Cliquer sur son indicateur dans la barre des menus pour accéder aux réglages et la quitter.
-
-Les builds locaux ne sont pas signés avec une identité Developer ID ni notarisés.
 
 ## Passer de BatteryIconApp à Pildot
 
@@ -52,7 +54,7 @@ La dernière commande construit une version **Debug**, redémarre l’applicatio
 
 GitHub Actions exécute les tests et construit le bundle Release sur macOS à chaque push et pull request. Aucun binaire n’est publié par ce workflow.
 
-## Créer un installateur local
+## Optionnel : créer un installateur pour soi
 
 ```bash
 ./package.sh
@@ -83,7 +85,7 @@ rm -f "$HOME/Library/LaunchAgents/com.rjn28.BatteryIconApp.login.plist"
 
 ## Contribuer
 
-Décrire les étapes de reproduction, la version de macOS et l’architecture du Mac dans les issues. Pour une pull request, limiter les changements au problème traité et exécuter `swift build` et `swift test` avant de la proposer.
+Les retours et les contributions sont les bienvenus. Pour signaler un problème, décrire les étapes de reproduction, la version de macOS et l’architecture du Mac dans une issue. Pour une pull request, limiter les changements au problème traité et exécuter `swift build` et `swift test` avant de la proposer.
 
 ## Licence
 
