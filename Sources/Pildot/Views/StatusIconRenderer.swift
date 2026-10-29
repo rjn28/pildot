@@ -12,7 +12,7 @@ final class StatusIconRenderer {
 
     private let dateFormatter: DateFormatter
 
-    init(locale: Locale = Locale(identifier: "fr_FR")) {
+    init(locale: Locale = Locale(identifier: "en_US")) {
         let formatter = DateFormatter()
         formatter.locale = locale
         formatter.setLocalizedDateFormatFromTemplate("EEE d")

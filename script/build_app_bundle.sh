@@ -3,7 +3,7 @@ set -euo pipefail
 
 CONFIGURATION="${1:-debug}"
 APP_NAME="Pildot"
-BUNDLE_ID="com.rjn28.BatteryIconApp"
+BUNDLE_ID="com.rjn28.Pildot"
 MIN_SYSTEM_VERSION="13.0"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -12,13 +12,13 @@ APP_CONTENTS="$APP_BUNDLE/Contents"
 APP_MACOS="$APP_CONTENTS/MacOS"
 APP_RESOURCES="$APP_CONTENTS/Resources"
 APP_BINARY="$APP_MACOS/$APP_NAME"
-ICON_SOURCE="$ROOT_DIR/logobatterie.png"
+ICON_SOURCE="$ROOT_DIR/assets/pildot.png"
 ICONSET_DIR="$ROOT_DIR/.build/Pildot.iconset"
 
 case "$CONFIGURATION" in
   debug|release) ;;
   *)
-    echo "Configuration invalide : $CONFIGURATION (debug ou release attendu)" >&2
+    echo "Invalid configuration: $CONFIGURATION (expected debug or release)" >&2
     exit 2
     ;;
 esac
@@ -81,4 +81,4 @@ cat >"$APP_CONTENTS/Info.plist" <<PLIST
 </plist>
 PLIST
 
-echo "App créée : $APP_BUNDLE"
+echo "App created: $APP_BUNDLE"

@@ -22,11 +22,11 @@ enum LaunchAtLoginError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidApplicationBundle(let url):
-            "L’application doit être lancée depuis un bundle .app valide : \(url.path)"
+            "The application must be launched from a valid .app bundle: \(url.path)"
         case .launchctlFailed(let arguments, let status, let output):
-            "launchctl \(arguments.joined(separator: " ")) a échoué (code \(status)) : \(output)"
+            "launchctl \(arguments.joined(separator: " ")) failed (exit code \(status)): \(output)"
         case .rollbackFailed(let registrationError, let cleanupError):
-            "L’activation a échoué (\(registrationError)) et le fichier temporaire n’a pas pu être supprimé (\(cleanupError))."
+            "Registration failed (\(registrationError)), and the temporary file could not be removed (\(cleanupError))."
         }
     }
 }
@@ -65,7 +65,7 @@ struct LaunchctlController: LaunchAgentControlling {
             throw LaunchAtLoginError.launchctlFailed(
                 arguments: arguments,
                 status: process.terminationStatus,
-                output: output.isEmpty ? "aucun détail fourni" : output
+                output: output.isEmpty ? "no details provided" : output
             )
         }
     }
@@ -73,8 +73,7 @@ struct LaunchctlController: LaunchAgentControlling {
 
 @MainActor
 final class LaunchAtLoginController: LaunchAtLoginManaging {
-    // Keep the existing identifier so users can disable the pre-Pildot login item.
-    static let agentLabel = "com.rjn28.BatteryIconApp.login"
+    static let agentLabel = "com.rjn28.Pildot.login"
 
     private let applicationURL: URL
     private let agentURL: URL

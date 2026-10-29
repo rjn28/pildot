@@ -5,8 +5,8 @@ import Testing
 struct StatusIconRendererTests {
     @Test
     @MainActor
-    func iconKeepsTheOriginalCompactFootprint() {
-        let renderer = StatusIconRenderer(locale: Locale(identifier: "fr_FR"))
+    func iconKeepsACompactFootprint() {
+        let renderer = StatusIconRenderer(locale: Locale(identifier: "en_US"))
         let snapshot = BatterySnapshot(percentage: 42, powerState: .discharging)
         let image = renderer.image(
             for: snapshot,

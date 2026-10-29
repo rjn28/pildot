@@ -20,11 +20,11 @@ struct BatterySnapshot: Equatable, Sendable {
     var statusDescription: String {
         switch powerState {
         case .charging:
-            "En charge"
+            "Charging"
         case .externalPower:
-            "Sur secteur"
+            "On external power"
         case .discharging:
-            "Sur batterie"
+            "On battery"
         }
     }
 }

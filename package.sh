@@ -4,7 +4,7 @@ set -euo pipefail
 APP_NAME="Pildot"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_BUNDLE="$ROOT_DIR/$APP_NAME.app"
-DMG_PATH="${PILDOT_DMG_PATH:-${BATTERY_ICON_DMG_PATH:-$ROOT_DIR/$APP_NAME.dmg}}"
+DMG_PATH="${PILDOT_DMG_PATH:-$ROOT_DIR/$APP_NAME.dmg}"
 DMG_STAGING="$ROOT_DIR/.build/dmg-staging"
 
 "$ROOT_DIR/script/build_app_bundle.sh" release
@@ -22,4 +22,4 @@ hdiutil create \
   "$DMG_PATH"
 
 rm -rf -- "$DMG_STAGING"
-echo "Installateur créé : $DMG_PATH"
+echo "Installer created: $DMG_PATH"
