@@ -15,14 +15,12 @@ final class StatusIconRenderer {
     init(locale: Locale = Locale(identifier: "en_US")) {
         let formatter = DateFormatter()
         formatter.locale = locale
-        formatter.setLocalizedDateFormatFromTemplate("EEE d")
+        formatter.setLocalizedDateFormatFromTemplate("d")
         dateFormatter = formatter
     }
 
     func image(for snapshot: BatterySnapshot?, isDimmed: Bool, date: Date = Date()) -> NSImage {
         let dateLine = dateFormatter.string(from: date)
-            .replacingOccurrences(of: ".", with: "")
-            .lowercased()
         let dateString = NSAttributedString(
             string: dateLine,
             attributes: [

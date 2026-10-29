@@ -15,8 +15,8 @@ struct StatusIconRendererTests {
         )
 
         #expect(image.size.height == 22)
-        #expect(image.size.width >= 20)
-        #expect(image.size.width <= 40)
+        #expect(image.size.width >= 12)
+        #expect(image.size.width <= 20)
         #expect(!image.isTemplate)
     }
 }

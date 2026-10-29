@@ -11,13 +11,13 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
 </p>
 
-Pildot pairs the date with a colored battery dot in your menu bar. It stays out of the way, with no main window and no Dock icon.
+Pildot pairs the day of the month with a colored battery dot in your menu bar. It stays out of the way, with no main window and no Dock icon.
 
 This is a personal project shared as source code for anyone interested in how it works, adapting it, or building it for their own Mac. There are no prebuilt app downloads or installer releases.
 
 ## Features
 
-- A compact date and battery indicator in the menu bar.
+- A compact day number and battery indicator in the menu bar.
 - A smooth color range from red to green as the charge increases.
 - A blinking dot at 15% or lower, only while running on battery.
 - Battery percentage and power status available with a click.
