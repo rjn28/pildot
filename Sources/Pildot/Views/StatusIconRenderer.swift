@@ -10,39 +10,56 @@ final class StatusIconRenderer {
         static let dotBaseline: CGFloat = 2
     }
 
-    private let dateFormatter: DateFormatter
+    private let dateFormatters: [DateLanguage: DateFormatter]
 
-    init(locale: Locale = Locale(identifier: "en_US")) {
-        let formatter = DateFormatter()
-        formatter.locale = locale
-        formatter.setLocalizedDateFormatFromTemplate("d")
-        dateFormatter = formatter
+    init(timeZone: TimeZone = .autoupdatingCurrent) {
+        dateFormatters = Dictionary(uniqueKeysWithValues: DateLanguage.allCases.map { language in
+            let formatter = DateFormatter()
+            formatter.locale = language.locale
+            formatter.timeZone = timeZone
+            formatter.dateFormat = "EEE d"
+            return (language, formatter)
+        })
     }
 
-    func image(for snapshot: BatterySnapshot?, isDimmed: Bool, date: Date = Date()) -> NSImage {
-        let dateLine = dateFormatter.string(from: date)
-        let dateString = NSAttributedString(
-            string: dateLine,
+    func dateText(for date: Date, language: DateLanguage) -> String {
+        dateFormatters[language]!.string(from: date)
+            .replacingOccurrences(of: ".", with: "")
+            .lowercased()
+    }
+
+    func image(
+        for snapshot: BatterySnapshot?,
+        isDimmed: Bool,
+        date: Date = Date(),
+        dateDisplayMode: DateDisplayMode = .hidden,
+        dateLanguage: DateLanguage = .english
+    ) -> NSImage {
+        let dateString: NSAttributedString? = dateDisplayMode == .hidden ? nil : NSAttributedString(
+            string: dateText(for: date, language: dateLanguage),
             attributes: [
                 .font: NSFont.systemFont(ofSize: 8, weight: .medium),
                 .foregroundColor: NSColor.secondaryLabelColor
             ]
         )
-        let dateSize = dateString.size()
+        let dateSize = dateString?.size() ?? .zero
         let width = ceil(max(dateSize.width, Metrics.dotSize)) + (Metrics.horizontalPadding * 2)
         let size = NSSize(width: width, height: Metrics.totalHeight)
         let dotColor = color(for: snapshot, isDimmed: isDimmed)
+        let dotBaseline = dateString == nil
+            ? (Metrics.totalHeight - Metrics.dotSize) / 2
+            : Metrics.dotBaseline
 
         let image = NSImage(size: size, flipped: false) { _ in
             let dateOrigin = NSPoint(
                 x: (width - dateSize.width) / 2,
                 y: Metrics.dateBaseline
             )
-            dateString.draw(at: dateOrigin)
+            dateString?.draw(at: dateOrigin)
 
             let dotRect = NSRect(
                 x: (width - Metrics.dotSize) / 2,
-                y: Metrics.dotBaseline,
+                y: dotBaseline,
                 width: Metrics.dotSize,
                 height: Metrics.dotSize
             )

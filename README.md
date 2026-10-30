@@ -11,13 +11,13 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
 </p>
 
-Pildot pairs the day of the month with a colored battery dot in your menu bar. It stays out of the way, with no main window and no Dock icon.
+Pildot shows a colored battery dot in your menu bar, with an optional weekday and day number above it. It stays out of the way, with no main window and no Dock icon.
 
 This is a personal project shared as source code for anyone interested in how it works, adapting it, or building it for their own Mac. There are no prebuilt app downloads or installer releases.
 
 ## Features
 
-- A compact day number and battery indicator in the menu bar.
+- A compact battery dot, with an optional weekday and day number in English or French.
 - A smooth color range from red to green as the charge increases.
 - A blinking dot at 15% or lower, only while running on battery.
 - Battery percentage and power status available with a click.
@@ -40,6 +40,16 @@ Enable **Launch at Login** after moving the app: the login registration uses its
 
 When replacing an existing installation, disable its launch at login setting and quit it first. Re-enable the setting from the new app after moving it into place.
 
+## Display settings
+
+Pildot shows only the battery dot by default, so a day number cannot be mistaken for a battery percentage. Click the indicator and open **Settings** to customize it:
+
+- **Date Display → None (Dot Only)** keeps just the centered battery dot.
+- **Date Display → Day and Date** adds the abbreviated weekday and day number above it.
+- **Date Language → English / Français** selects the weekday language, for example `fri 30` or `ven 30`.
+
+Changes apply immediately and are saved locally between launches. Hiding the date preserves your language choice. The menu itself stays in English.
+
 ## Development
 
 ```bash
@@ -50,7 +60,7 @@ swift test
 
 The last command builds a Debug app bundle, restarts Pildot, and checks that its process is running. It requires a graphical macOS session. The script also supports `--debug` for LLDB and `--logs` for process logs.
 
-Tests cover battery states, the color palette, icon rendering, and login registration using a simulated launch controller. GitHub Actions runs the build, tests, shell syntax checks, and Release bundle creation for pushes and pull requests. It does not publish binaries.
+Tests cover battery states, the color palette, dot and date rendering, English and French dates, saved display preferences, and login registration using a simulated launch controller. GitHub Actions runs the build, tests, shell syntax checks, and Release bundle creation for pushes and pull requests. It does not publish binaries.
 
 | Path | Purpose |
 | --- | --- |

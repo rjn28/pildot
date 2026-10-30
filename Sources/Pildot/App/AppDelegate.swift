@@ -5,6 +5,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let monitor: BatteryMonitor
     private let renderer: StatusIconRenderer
     private let launchAtLoginManager: any LaunchAtLoginManaging
+    private let displayPreferences: DisplayPreferences
+    private var dateDisplayMenuItems: [NSMenuItem] = []
+    private var dateLanguageMenuItems: [NSMenuItem] = []
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let batteryMenuItem = NSMenuItem(title: "Battery unavailable", action: nil, keyEquivalent: "")
     private let powerMenuItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
@@ -17,11 +20,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     init(
         monitor: BatteryMonitor = BatteryMonitor(reader: SystemBatteryReader()),
         renderer: StatusIconRenderer = StatusIconRenderer(),
-        launchAtLoginManager: any LaunchAtLoginManaging = LaunchAtLoginController()
+        launchAtLoginManager: any LaunchAtLoginManaging = LaunchAtLoginController(),
+        displayPreferences: DisplayPreferences = DisplayPreferences()
     ) {
         self.monitor = monitor
         self.renderer = renderer
         self.launchAtLoginManager = launchAtLoginManager
+        self.displayPreferences = displayPreferences
         super.init()
     }
 
@@ -41,6 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
         updateMenu(for: monitor.currentSnapshot)
         updateLaunchAtLoginMenuItem()
+        updateDisplayMenuItems()
     }
 
     @objc
@@ -58,6 +64,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         updateLaunchAtLoginMenuItem()
     }
 
+    @objc
+    private func selectDateDisplay(_ sender: NSMenuItem) {
+        guard let value = sender.representedObject as? String,
+              let mode = DateDisplayMode(rawValue: value) else { return }
+        displayPreferences.dateDisplayMode = mode
+        refreshDisplay()
+    }
+
+    @objc
+    private func selectDateLanguage(_ sender: NSMenuItem) {
+        guard let value = sender.representedObject as? String,
+              let language = DateLanguage(rawValue: value) else { return }
+        displayPreferences.dateLanguage = language
+        refreshDisplay()
+    }
+
+    private func refreshDisplay() {
+        updateDisplayMenuItems()
+        render(snapshot: monitor.currentSnapshot, isDimmed: monitor.isDimmed)
+    }
+
     private func configureStatusItem() {
         let menu = NSMenu()
         menu.delegate = self
@@ -70,6 +97,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         launchAtLoginMenuItem.target = self
         let settingsMenu = NSMenu(title: "Settings")
+        let dateDisplayMenu = NSMenu(title: "Date Display")
+        for mode in DateDisplayMode.allCases {
+            let item = NSMenuItem(
+                title: mode == .hidden ? "None (Dot Only)" : "Day and Date",
+                action: #selector(selectDateDisplay(_:)),
+                keyEquivalent: ""
+            )
+            item.target = self
+            item.representedObject = mode.rawValue
+            dateDisplayMenu.addItem(item)
+            dateDisplayMenuItems.append(item)
+        }
+        let dateDisplayItem = NSMenuItem(title: "Date Display", action: nil, keyEquivalent: "")
+        dateDisplayItem.submenu = dateDisplayMenu
+        settingsMenu.addItem(dateDisplayItem)
+
+        let dateLanguageMenu = NSMenu(title: "Date Language")
+        for language in DateLanguage.allCases {
+            let item = NSMenuItem(
+                title: language == .french ? "Français" : "English",
+                action: #selector(selectDateLanguage(_:)),
+                keyEquivalent: ""
+            )
+            item.target = self
+            item.representedObject = language.rawValue
+            dateLanguageMenu.addItem(item)
+            dateLanguageMenuItems.append(item)
+        }
+        let dateLanguageItem = NSMenuItem(title: "Date Language", action: nil, keyEquivalent: "")
+        dateLanguageItem.submenu = dateLanguageMenu
+        settingsMenu.addItem(dateLanguageItem)
+        settingsMenu.addItem(.separator())
         settingsMenu.addItem(launchAtLoginMenuItem)
         let settingsItem = NSMenuItem(title: "Settings", action: nil, keyEquivalent: "")
         menu.setSubmenu(settingsMenu, for: settingsItem)
@@ -88,11 +147,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         statusItem.button?.imagePosition = .imageOnly
         statusItem.button?.imageScaling = .scaleProportionallyDown
         updateLaunchAtLoginMenuItem()
+        updateDisplayMenuItems()
     }
 
     private func render(snapshot: BatterySnapshot?, isDimmed: Bool) {
-        statusItem.button?.image = renderer.image(for: snapshot, isDimmed: isDimmed)
+        statusItem.button?.image = renderer.image(
+            for: snapshot,
+            isDimmed: isDimmed,
+            dateDisplayMode: displayPreferences.dateDisplayMode,
+            dateLanguage: displayPreferences.dateLanguage
+        )
         updateMenu(for: snapshot)
+    }
+
+    private func updateDisplayMenuItems() {
+        for item in dateDisplayMenuItems {
+            item.state = (item.representedObject as? String) == displayPreferences.dateDisplayMode.rawValue ? .on : .off
+        }
+        for item in dateLanguageMenuItems {
+            item.state = (item.representedObject as? String) == displayPreferences.dateLanguage.rawValue ? .on : .off
+        }
     }
 
     private func updateMenu(for snapshot: BatterySnapshot?) {

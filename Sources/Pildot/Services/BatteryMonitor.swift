@@ -11,7 +11,7 @@ final class BatteryMonitor: NSObject {
     private var blinkTimer: Timer?
     private var changeHandler: ChangeHandler?
     private var renderedDay: Date?
-    private var isDimmed = false
+    private(set) var isDimmed = false
 
     private(set) var currentSnapshot: BatterySnapshot?
 
