@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/pildot.png" alt="Pildot logo: a dot with a green-to-red battery gradient" width="160" height="160">
+  <img src="assets/pildot.svg" alt="Pildot logo: a dot with a green-to-red battery gradient" width="160" height="160">
 </p>
 
 <h1 align="center">Pildot</h1>
